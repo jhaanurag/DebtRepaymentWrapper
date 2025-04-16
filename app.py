@@ -108,14 +108,16 @@ if __name__ == '__main__':
     </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col font-sans">
-
+    <header class="bg-white shadow-md p-4 flex items-center justify-center">
+        <h1 class="text-xl font-bold text-gray-800">AI Debt Planner by Anurag Jha</h1>
+    </header>
     <main class="flex-grow container mx-auto p-4 flex flex-col max-w-3xl w-full">
         <!-- Chat messages area -->
         <div id="chatbox" class="flex-grow overflow-y-auto mb-4 space-y-6 p-4">
             <!-- Initial AI Message -->
              <div class="flex justify-start group">
                 <div class="bg-white text-gray-800 rounded-lg px-4 py-3 max-w-xl shadow-sm border border-gray-200">
-                    <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner (made by Anurag Jha):</p>
+                    <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner:</p>
                     <p class="text-sm">Hello! I'm here to help you create a debt repayment plan. Please tell me about your debts (name, amount owed, APR %, minimum monthly payment) and your total monthly budget for debt repayment.</p>
                 </div>
             </div>

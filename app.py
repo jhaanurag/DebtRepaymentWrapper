@@ -11,7 +11,7 @@ app = Flask(__name__)
 # Configure the Google Generative AI client
 try:
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel('gemini-1.5-flash') # Use a suitable model
+    model = genai.GenerativeModel('gemini-2.0-flash-lite') # Use a suitable model
 except Exception as e:
     print(f"Error configuring GenAI: {e}")
     # Handle the error appropriately, maybe exit or use a fallback
@@ -115,7 +115,7 @@ if __name__ == '__main__':
             <!-- Initial AI Message -->
              <div class="flex justify-start group">
                 <div class="bg-white text-gray-800 rounded-lg px-4 py-3 max-w-xl shadow-sm border border-gray-200">
-                    <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner:</p>
+                    <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner (made by Anurag Jha):</p>
                     <p class="text-sm">Hello! I'm here to help you create a debt repayment plan. Please tell me about your debts (name, amount owed, APR %, minimum monthly payment) and your total monthly budget for debt repayment.</p>
                 </div>
             </div>

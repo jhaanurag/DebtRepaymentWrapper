@@ -1,0 +1,104 @@
+# Sample Test Cases for AI Debt Repayment Planner
+
+# --- Test Case 1: Basic Scenario ---
+# Goal: Verify basic Snowball and Avalanche calculation and explanation.
+
+User Input 1:
+Hi! I need help with my debts.
+I have:
+- Credit Card A: $5,000 owed, 18% APR, $100 minimum payment
+- Student Loan: $15,000 owed, 6% APR, $200 minimum payment
+- Car Loan: $8,000 owed, 4.5% APR, $150 minimum payment
+My total monthly budget for debt repayment is $600.
+
+Expected AI Response Outline:
+- Acknowledge receipt of information.
+- Confirm total minimum payments ($100 + $200 + $150 = $450) are less than the budget ($600).
+- Explain Debt Snowball (Order: CC A, Car Loan, Student Loan).
+- Explain Debt Avalanche (Order: CC A, Student Loan, Car Loan).
+- Present calculations for both methods:
+    - Payoff order for each.
+    - Estimated time to be debt-free for each.
+    - Estimated total interest paid for each.
+- Potentially offer a personalized suggestion (though in this case, Snowball and Avalanche start the same).
+- Maintain encouraging tone.
+
+# --- Test Case 2: Budget Less Than Minimums ---
+# Goal: Verify the AI correctly identifies insufficient budget.
+
+User Input 2:
+Debts:
+- Personal Loan: $3,000, 12% APR, $150 min payment
+- Store Card: $1,500, 24% APR, $75 min payment
+My budget is $200 per month.
+
+Expected AI Response Outline:
+- Acknowledge receipt of information.
+- Calculate total minimum payments ($150 + $75 = $225).
+- Point out that the budget ($200) is less than the total minimum payments ($225).
+- Explain that at least $225 is needed monthly to avoid late fees/negative impacts.
+- Encourage the user to find ways to increase the budget to at least the minimum before creating a payoff plan.
+- Do NOT proceed with Snowball/Avalanche calculations yet.
+
+# --- Test Case 3: Single Debt ---
+# Goal: Verify handling of a single debt scenario.
+
+User Input 3:
+I only have one debt: a credit card with $2,500 balance, 21% APR, and a $50 minimum payment. My budget is $200 per month.
+
+Expected AI Response Outline:
+- Acknowledge receipt of information.
+- Confirm budget ($200) exceeds minimum ($50).
+- Explain that with only one debt, Snowball and Avalanche methods are the same.
+- Calculate the estimated time to pay off the $2,500 at $200/month (considering interest).
+- Calculate the total interest paid.
+- Offer encouragement.
+
+# --- Test Case 4: Off-Topic Question ---
+# Goal: Verify the AI refuses to answer non-debt related questions.
+
+User Input 4:
+What's the weather like today?
+
+Expected AI Response Outline:
+- Politely refuse to answer the question.
+- State its purpose is solely debt repayment planning.
+- Re-engage the user about their debt situation (e.g., "How can I help you with your debt repayment plan today?").
+
+# --- Test Case 5: Complex Scenario (More Debts) ---
+# Goal: Verify handling of a larger number of debts.
+
+User Input 5:
+Okay, here are my debts:
+1. Visa: $4,200, 19.9% APR, $90 min
+2. Mastercard: $8,500, 15.5% APR, $180 min
+3. Store Card: $950, 25.9% APR, $50 min
+4. Car Loan: $12,000, 5.0% APR, $250 min
+5. Student Loan: $25,000, 6.8% APR, $300 min
+My total monthly budget is $1000.
+
+Expected AI Response Outline:
+- Acknowledge receipt.
+- Confirm budget ($1000) exceeds total minimums ($90+$180+$50+$250+$300 = $870).
+- Explain Debt Snowball (Order: Store Card, Visa, Mastercard, Car Loan, Student Loan).
+- Explain Debt Avalanche (Order: Store Card, Visa, Mastercard, Student Loan, Car Loan).
+- Present calculations for both methods (payoff order, time, total interest).
+- Offer encouragement.
+
+# --- Test Case 6: User Provides Information Piecemeal ---
+# Goal: Verify the AI can handle information given over multiple messages (requires conversation history, which the current simple app doesn't fully manage, but the prompt structure attempts to simulate).
+
+User Input 6a:
+I have a credit card with $3000 at 20% APR, min payment $70. Also a student loan $10000 at 5%, min payment $150.
+
+Expected AI Response (Intermediate):
+- Acknowledge the debts provided.
+- Ask for the total monthly budget allocated for debt repayment.
+
+User Input 6b (Follow-up):
+My budget is $400 per month.
+
+Expected AI Response (Final):
+- Acknowledge budget.
+- Confirm budget ($400) exceeds minimums ($70+$150 = $220).
+- Proceed with Snowball/Avalanche explanations and calculations based on the combined information.

@@ -3,156 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Debt Planner</title>
+    <title>AI Debt Planner & Visualizer</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap CSS (for form styling) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom scrollbar for chatbox */
-        #chatbox::-webkit-scrollbar {
-            width: 6px;
+        body {
+            background-color: #f8f9fa; /* Light gray background */
+            font-family: sans-serif;
         }
-        #chatbox::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        /* Ensure full height for flex layout */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
-        #chatbox::-webkit-scrollbar-thumb {
-            background: #c1c1c1; /* Lighter scrollbar thumb */
-            border-radius: 10px;
+        .main-container {
+            display: flex;
+            height: 100vh; /* Full viewport height */
+            width: 100vw; /* Full viewport width */
         }
-        #chatbox::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
+        .left-panel {
+            flex: 1; /* Takes up remaining space */
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #dee2e6;
+            background-color: #f1f1f1; /* Slightly different bg for chat */
+            height: 100%;
+            max-width: 50%; /* Limit width */
+             min-width: 400px; /* Minimum width */
         }
-        /* Ensure input doesn't overlap button */
+        .right-panel {
+            flex: 1; /* Takes up remaining space */
+            padding: 1.5rem;
+            overflow-y: auto; /* Scroll if content overflows */
+            background-color: #ffffff; /* White background for form/graphs */
+            height: 100%;
+            max-width: 50%; /* Limit width */
+             min-width: 400px; /* Minimum width */
+        }
+
+        /* Chatbox specific styles */
+        #chatbox {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            space-y: 1rem; /* Tailwind class equivalent */
+        }
+         #chatbox .flex { margin-bottom: 1rem; } /* Add space between messages */
+
+        #chatbox::-webkit-scrollbar { width: 6px; }
+        #chatbox::-webkit-scrollbar-track { background: #e0e0e0; border-radius: 10px; }
+        #chatbox::-webkit-scrollbar-thumb { background: #a1a1a1; border-radius: 10px; }
+        #chatbox::-webkit-scrollbar-thumb:hover { background: #888; }
+
+        #chat-input-area {
+            padding: 1rem;
+            background-color: #f1f1f1; /* Match left panel bg */
+            border-top: 1px solid #dee2e6;
+        }
         #userInput {
-            padding-right: 4rem; /* Space for the button */
+            padding-right: 3rem; /* Space for the button */
+             border: 1px solid #ced4da; /* Add border */
         }
+         #sendButton {
+            /* Tailwind classes for positioning and style */
+            position: absolute;
+            right: 0.5rem;
+            bottom: 0.5rem;
+            background-color: black;
+            color: white;
+            border-radius: 0.5rem; /* rounded-lg */
+            width: 2rem; /* w-8 */
+            height: 2rem; /* h-8 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #sendButton:hover { background-color: #333; } /* hover:bg-gray-700 */
+        #sendButton:disabled { background-color: #ccc; } /* disabled:bg-gray-300 */
+
+
+        /* Form/Graph specific styles (Bootstrap overrides or additions) */
+        .right-panel .card { margin-bottom: 1.5rem; }
+        .right-panel .form-label { font-weight: 500; }
+        .right-panel .results-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dee2e6; }
+        .right-panel .chart-container { margin-bottom: 2rem; max-width: 100%; }
+        .right-panel .btn-remove { margin-left: 5px; }
+        .right-panel h1, .right-panel h2 {
+            font-family: sans-serif; /* Match chat font */
+            color: #333;
+        }
+        .right-panel header p.lead { color: #555; }
+
+        /* Responsive adjustments */
+         @media (max-width: 992px) { /* Adjust breakpoint as needed */
+            .main-container {
+                flex-direction: column;
+                height: auto; /* Allow content to determine height */
+            }
+            .left-panel, .right-panel {
+                max-width: 100%;
+                min-width: 100%;
+                height: auto; /* Reset height */
+                border-right: none;
+            }
+            .left-panel {
+                 min-height: 60vh; /* Ensure chat has reasonable min height */
+                 border-bottom: 1px solid #dee2e6;
+            }
+             .right-panel {
+                 min-height: 40vh;
+                 max-height: none; /* Allow it to grow */
+                 overflow-y: visible;
+            }
+            #chatbox {
+                 max-height: 50vh; /* Limit chatbox height on small screens */
+            }
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col font-sans">
+<body>
 
-    <main class="flex-grow container mx-auto p-4 flex flex-col max-w-3xl w-full">
-        <!-- Chat messages area -->
-        <div id="chatbox" class="flex-grow overflow-y-auto mb-4 space-y-6 p-4">
-            <!-- Initial AI Message -->
-             <div class="flex justify-start group">
-                <div class="bg-white text-gray-800 rounded-lg px-4 py-3 max-w-xl shadow-sm border border-gray-200">
-                    <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner:</p>
-                    <p class="text-sm">Hello! I'm here to help you create a debt repayment plan. Please tell me about your debts (name, amount owed, APR %, minimum monthly payment) and your total monthly budget for debt repayment.</p>
+    <div class="main-container">
+
+        <!-- Left Panel: Chat -->
+        <div class="left-panel">
+            <!-- Chat messages area -->
+            <div id="chatbox">
+                <!-- Initial AI Message -->
+                <div class="flex justify-start group">
+                    <div class="bg-white text-gray-800 rounded-lg px-4 py-3 max-w-xl shadow-sm border border-gray-200">
+                        <p class="font-semibold text-sm mb-1 text-gray-700">AI Debt Planner:</p>
+                        <p class="text-sm">Hello! I'm here to help you create a debt repayment plan. Please use the form on the right to enter your debt details (name, amount owed, APR %, minimum monthly payment). Once submitted, I can help analyze the data and discuss repayment strategies.</p>
+                    </div>
+                </div>
+                <!-- Chat messages will appear here -->
+            </div>
+
+            <!-- Composer area -->
+            <div id="chat-input-area">
+                 <div class="relative flex items-center bg-white rounded-xl shadow-md overflow-hidden border border-gray-300">
+                    <input type="text" id="userInput" class="flex-grow border-none focus:ring-0 bg-transparent px-4 py-3 text-gray-800 placeholder-gray-500 text-sm" placeholder="Ask about your debt plan after submitting data...">
+                    <button id="sendButton" disabled>
+                        <!-- SVG Arrow Icon -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+                 <div class="text-center text-xs text-gray-500 mt-2">
+                    AI Debt Planner may make mistakes. Verify critical information. Financial advice is general purpose only.
                 </div>
             </div>
-            <!-- Chat messages will appear here -->
         </div>
 
-        <!-- Composer area -->
-        <div class="mt-auto px-4 pb-4 pt-2 bg-gray-100 sticky bottom-0">
-            <div class="relative flex items-center bg-white rounded-2xl shadow-lg border border-gray-300 overflow-hidden">
-                <input type="text" id="userInput" class="flex-grow border-none focus:ring-0 bg-transparent px-5 py-3 text-gray-800 placeholder-gray-500 text-sm" placeholder="Enter your debt details or message...">
-                <button id="sendButton" class="absolute right-2 bottom-2 bg-black text-white rounded-lg w-8 h-8 flex items-center justify-center hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-black disabled:bg-gray-300" disabled>
-                    <!-- SVG Arrow Icon -->
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 4.29289C13.0976 4.68342 13.0976 5.31658 12.7071 5.70711L7.41421 11H20C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13H7.41421L12.7071 18.2929C13.0976 18.6834 13.0976 19.3166 12.7071 19.7071C12.3166 20.0976 11.6834 20.0976 11.2929 19.7071L4.29289 12.7071C3.90237 12.3166 3.90237 11.6834 4.29289 11.2929L11.2929 4.29289C11.6834 3.90237 12.3166 3.90237 12.7071 4.29289Z" transform="rotate(180 12 12)" fill="currentColor"/>
-                    </svg>
-                </button>
-            </div>
-             <div class="text-center text-xs text-gray-500 mt-2">
-                AI Debt Planner can make mistakes. Consider checking important information.
-            </div>
-        </div>
-    </main>
+        <!-- Right Panel: Form and Graphs -->
+        <div class="right-panel">
+            <header class="text-center mb-4">
+                <h1>Debt Input & Visualization</h1>
+                <p class="lead">Enter your debts below to visualize a basic repayment schedule and provide context for the AI planner.</p>
+            </header>
 
-    <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
+            <section id="debt-input-section">
+                <h2 class="mb-3 h4">Enter Your Debts</h2>
+                <form method="post" id="debt-form">
+                    <div id="debts-list">
+                        <!-- Debt Entry Template (at least one) -->
+                        <div class="card debt-entry">
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-4 col-lg-3">
+                                        <label class="form-label">Debt Name</label>
+                                        <input type="text" name="name" class="form-control form-control-sm" placeholder="Credit Card" required>
+                                    </div>
+                                    <div class="col-md-4 col-lg-3">
+                                        <label class="form-label">Principal ($)</label>
+                                        <input type="number" step="0.01" min="0" name="principal" class="form-control form-control-sm" placeholder="10000" required>
+                                    </div>
+                                    <div class="col-md-4 col-lg-2">
+                                        <label class="form-label">Annual Rate (%)</label>
+                                        <input type="number" step="0.01" min="0" name="rate" class="form-control form-control-sm" placeholder="15.0" required>
+                                    </div>
+                                    <div class="col-md-9 col-lg-3">
+                                        <label class="form-label">Min. Payment ($)</label>
+                                        <input type="number" step="0.01" min="0" name="payment" class="form-control form-control-sm" placeholder="200" required>
+                                    </div>
+                                    <div class="col-md-3 col-lg-1 text-end">
+                                         <button type="button" class="btn btn-danger btn-sm btn-remove mt-3 mt-md-0" onclick="removeDebt(this)">X</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Debt Entry Template -->
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-success me-2" onclick="addDebt()">+ Add Debt</button>
+                        <button type="submit" class="btn btn-primary">Visualize & Submit Data</button>
+                    </div>
+                </form>
+            </section>
 
-        function addMessage(sender, message) {
-            const messageContainer = document.createElement('div');
-            const messageBubble = document.createElement('div');
-            messageBubble.classList.add('rounded-lg', 'px-4', 'py-3', 'max-w-xl', 'shadow-sm', 'border');
+            {% if chart_data or pie_chart_data %}
+            <section class="results-section">
+                <h2 class="text-center mb-4 h4">Debt Visualization</h2>
+                <div class="row">
+                     {% if pie_chart_data %}
+                    <div class="col-lg-5 chart-container">
+                         <div class="card">
+                            <div class="card-header small">Initial Debt Distribution</div>
+                            <div class="card-body">
+                                <canvas id="debtPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                     {% endif %}
+                    {% if chart_data %}
+                    <div class="col-lg-7 chart-container">
+                        <div class="card">
+                            <div class="card-header small">Repayment Schedule (Min. Payments)</div>
+                            <div class="card-body">
+                                 <canvas id="balanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                     {% endif %}
+                </div>
+                 <p class="text-muted text-center mt-3 small">Note: The line chart shows estimated payoff time if only minimum payments are made. Ask the AI planner about faster strategies like Snowball or Avalanche!</p>
+            </section>
 
-            const senderP = document.createElement('p');
-            senderP.classList.add('font-semibold', 'text-sm', 'mb-1');
+            <script>
+                // Chart Initialization (only runs if data exists)
+                {% if chart_data %}
+                const ctxLine = document.getElementById('balanceChart')?.getContext('2d');
+                if (ctxLine) {
+                    new Chart(ctxLine, {
+                        type: 'line',
+                        data: {
+                            labels: {{ chart_data.months | tojson }},
+                            datasets: [
+                                {% for d in chart_data.datasets %}
+                                {
+                                    label: '{{ d.label }}',
+                                    data: {{ d.data | tojson }},
+                                    borderColor: '{{ d.color }}',
+                                    backgroundColor: '{{ d.color }}', // Optional: for fill
+                                    fill: false,
+                                    tension: 0.1,
+                                    pointRadius: 1, // Smaller points
+                                    borderWidth: 2
+                                }{% if not loop.last %},{% endif %}
+                                {% endfor %}
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false, // Allow chart to fill container height better
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+                                title: { display: false }, // Title is in card header
+                                tooltip: {
+                                     mode: 'index',
+                                     intersect: false,
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Balance ($)', font: { size: 10 } },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                x: {
+                                     title: { display: true, text: 'Months', font: { size: 10 } },
+                                     ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                }
+                {% endif %}
 
-            const messageP = document.createElement('p');
-            messageP.classList.add('text-sm', 'whitespace-pre-wrap'); // Use pre-wrap to respect newlines
-            // Basic sanitization to prevent HTML injection - only display text content
-            messageP.textContent = message;
+                {% if pie_chart_data %}
+                const ctxPie = document.getElementById('debtPieChart')?.getContext('2d');
+                 if (ctxPie) {
+                    new Chart(ctxPie, {
+                        type: 'pie',
+                        data: {
+                            labels: {{ pie_chart_data.labels | tojson }},
+                            datasets: [{
+                                label: 'Initial Debt Amount',
+                                data: {{ pie_chart_data.data | tojson }},
+                                backgroundColor: {{ pie_chart_data.colors | tojson }},
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+                                title: { display: false } // Title is in card header
+                            }
+                        }
+                    });
+                }
+                {% endif %}
+            </script>
+            {% else %}
+             <p class="text-center text-muted mt-5">Submit your debt details above to generate visualizations.</p>
+            {% endif %}
+        </div> <!-- End Right Panel -->
+    </div> <!-- End Main Container -->
 
-            messageBubble.appendChild(senderP);
-            messageBubble.appendChild(messageP);
+<script>
+    // --- Chatbot JavaScript ---
+    const chatbox = document.getElementById('chatbox');
+    const userInput = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendButton');
 
-            if (sender === 'You') {
-                messageContainer.classList.add('flex', 'justify-end', 'group'); // Align user messages to the right
-                messageBubble.classList.add('bg-blue-600', 'text-white', 'border-blue-700');
-                senderP.textContent = sender + ':';
-                senderP.classList.add('text-blue-100');
-            } else { // AI
-                messageContainer.classList.add('flex', 'justify-start', 'group'); // Align AI messages to the left
-                messageBubble.classList.add('bg-white', 'text-gray-800', 'border-gray-200');
-                senderP.textContent = 'AI Debt Planner:';
-                senderP.classList.add('text-gray-700');
-            }
+    function addMessage(sender, message) {
+        const messageContainer = document.createElement('div');
+        const messageBubble = document.createElement('div');
+        // Tailwind classes applied here
+        messageBubble.classList.add('rounded-lg', 'px-4', 'py-3', 'max-w-xl', 'shadow-sm', 'border', 'text-sm');
 
-            messageContainer.appendChild(messageBubble);
-            chatbox.appendChild(messageContainer);
-            chatbox.scrollTop = chatbox.scrollHeight; // Scroll to bottom
+        const senderP = document.createElement('p');
+        senderP.classList.add('font-semibold', 'text-xs', 'mb-1'); // Smaller sender text
+
+        const messageP = document.createElement('p');
+        messageP.classList.add('whitespace-pre-wrap'); // Respect newlines
+
+        // Simple text sanitization (important!)
+        messageP.textContent = message;
+
+        messageBubble.appendChild(senderP);
+        messageBubble.appendChild(messageP);
+
+        if (sender === 'You') {
+            messageContainer.classList.add('flex', 'justify-end', 'group');
+            messageBubble.classList.add('bg-blue-600', 'text-white', 'border-blue-700');
+            senderP.textContent = sender + ':';
+            senderP.classList.add('text-blue-100');
+        } else { // AI
+            messageContainer.classList.add('flex', 'justify-start', 'group');
+            messageBubble.classList.add('bg-white', 'text-gray-800', 'border-gray-200');
+            senderP.textContent = 'AI Debt Planner:';
+            senderP.classList.add('text-gray-700');
         }
 
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
+        messageContainer.appendChild(messageBubble);
+        chatbox.appendChild(messageContainer);
+        chatbox.scrollTop = chatbox.scrollHeight; // Scroll to bottom
+    }
 
-            addMessage('You', message);
-            userInput.value = ''; // Clear input
-            userInput.disabled = true; // Disable input while waiting
-            sendButton.disabled = true; // Disable send button
-            sendButton.classList.add('animate-pulse'); // Optional: Add thinking indicator
+    // Function to gather debt data from the form (Add this function if it's missing, or ensure it's correct)
+    function getDebtDataFromForm() {
+        const debtEntries = document.querySelectorAll('#debts-list .debt-entry');
+        const debtData = [];
+        debtEntries.forEach(entry => {
+            const nameInput = entry.querySelector('input[name="name"]');
+            const principalInput = entry.querySelector('input[name="principal"]');
+            const rateInput = entry.querySelector('input[name="rate"]');
+            const paymentInput = entry.querySelector('input[name="payment"]');
 
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: message }),
+            // Basic validation: only add if essential fields have values
+            if (nameInput && principalInput && rateInput && paymentInput &&
+                nameInput.value.trim() && principalInput.value && rateInput.value && paymentInput.value) {
+                debtData.push({
+                    name: nameInput.value.trim(),
+                    principal: parseFloat(principalInput.value) || 0,
+                    rate: parseFloat(rateInput.value) || 0,
+                    payment: parseFloat(paymentInput.value) || 0
                 });
+            }
+        });
+        return debtData;
+    }
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ reply: 'Unknown server error' })); // Try to parse error
-                    throw new Error(`HTTP error! status: ${response.status} - ${errorData.reply || errorData.error}`);
-                }
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
 
-                const data = await response.json();
-                addMessage('AI', data.reply);
+        addMessage('You', message);
+        userInput.value = ''; // Clear input
+        userInput.disabled = true;
+        sendButton.disabled = true;
+        sendButton.classList.add('animate-pulse'); // Thinking indicator
 
-            } catch (error) {
-                console.error('Error sending message:', error);
-                addMessage('AI', `Sorry, I encountered an error: ${error.message}`);
-            } finally {
-                 userInput.disabled = false; // Re-enable input
-                 sendButton.disabled = userInput.value.trim() === ''; // Re-enable send button only if input has text
-                 sendButton.classList.remove('animate-pulse'); // Remove thinking indicator
-                 userInput.focus(); // Keep focus on input
+        // Get current debt data from the form
+        const currentDebtData = getDebtDataFromForm(); // <<< ADD THIS LINE
+
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Send both the user message AND the current debt data
+                body: JSON.stringify({
+                    message: message,
+                    debt_data: currentDebtData // <<< ADD THIS LINE
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Use error message from API response if available, otherwise provide a generic one
+                throw new Error(data.error || data.reply || `HTTP error! status: ${response.status}`); // Use data.reply if available
+            }
+
+            addMessage('AI', data.reply);
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            addMessage('AI', `Sorry, I encountered an error: ${error.message}`);
+        } finally {
+             userInput.disabled = false;
+             sendButton.disabled = userInput.value.trim() === '';
+             sendButton.classList.remove('animate-pulse');
+             userInput.focus();
+        }
+    }
+
+    // Enable/disable send button based on input content
+    userInput.addEventListener('input', () => {
+        sendButton.disabled = userInput.value.trim() === '';
+    });
+
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter (if not shift+enter)
+            e.preventDefault();
+            if (!sendButton.disabled) {
+                sendMessage();
             }
         }
+    });
 
-        // Enable/disable send button based on input content
-        userInput.addEventListener('input', () => {
-            sendButton.disabled = userInput.value.trim() === '';
-        });
+    // Initial focus
+    // userInput.focus(); // Focusing might be annoying on load, user might want to use form first.
 
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter
-                e.preventDefault(); // Prevent default Enter behavior (like form submission or newline)
-                if (!sendButton.disabled) { // Only send if button is enabled
-                    sendMessage();
-                }
+    // --- Form JavaScript ---
+    function addDebt(){
+        const list = document.getElementById('debts-list');
+        const newEntry = document.createElement('div');
+        newEntry.className = 'card debt-entry';
+        // Using same structure as the initial entry
+        newEntry.innerHTML = `
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label">Debt Name</label>
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="Student Loan" required>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label class="form-label">Principal ($)</label>
+                        <input type="number" step="0.01" min="0" name="principal" class="form-control form-control-sm" placeholder="5000" required>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <label class="form-label">Annual Rate (%)</label>
+                        <input type="number" step="0.01" min="0" name="rate" class="form-control form-control-sm" placeholder="5.0" required>
+                    </div>
+                    <div class="col-md-9 col-lg-3">
+                        <label class="form-label">Min. Payment ($)</label>
+                        <input type="number" step="0.01" min="0" name="payment" class="form-control form-control-sm" placeholder="100" required>
+                    </div>
+                    <div class="col-md-3 col-lg-1 text-end">
+                         <button type="button" class="btn btn-danger btn-sm btn-remove mt-3 mt-md-0" onclick="removeDebt(this)">X</button>
+                    </div>
+                </div>
+            </div>`;
+        list.appendChild(newEntry);
+    }
+
+    function removeDebt(button) {
+        const debtEntry = button.closest('.debt-entry');
+        // Only remove if more than one entry exists
+        if (document.querySelectorAll('.debt-entry').length > 1) {
+             debtEntry.remove();
+        } else {
+            alert("You must keep at least one debt entry.");
+        }
+    }
+
+    // Ensure at least one debt entry exists on load if the list is somehow empty
+    // (Shouldn't happen with the initial template structure but good failsafe)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.querySelectorAll('.debt-entry').length === 0) {
+             // Find the container and add the first entry HTML directly
+             const list = document.getElementById('debts-list');
+             if(list) {
+                 list.innerHTML = `
+                    <div class="card debt-entry">
+                        <div class="card-body">
+                             <div class="row g-3 align-items-end">
+                                <div class="col-md-4 col-lg-3"><label class="form-label">Debt Name</label><input type="text" name="name" class="form-control form-control-sm" placeholder="Credit Card" required></div>
+                                <div class="col-md-4 col-lg-3"><label class="form-label">Principal ($)</label><input type="number" step="0.01" min="0" name="principal" class="form-control form-control-sm" placeholder="10000" required></div>
+                                <div class="col-md-4 col-lg-2"><label class="form-label">Annual Rate (%)</label><input type="number" step="0.01" min="0" name="rate" class="form-control form-control-sm" placeholder="15.0" required></div>
+                                <div class="col-md-9 col-lg-3"><label class="form-label">Min. Payment ($)</label><input type="number" step="0.01" min="0" name="payment" class="form-control form-control-sm" placeholder="200" required></div>
+                                <div class="col-md-3 col-lg-1 text-end"><button type="button" class="btn btn-danger btn-sm btn-remove mt-3 mt-md-0" onclick="removeDebt(this)">X</button></div>
+                             </div>
+                        </div>
+                     </div>`;
             }
-        });
+        }
+    });
 
-        // Add initial focus to the input field
-        userInput.focus();
-
-    </script>
+</script>
+<!-- Bootstrap JS Bundle (needed for potential Bootstrap components, though not strictly required for this form) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

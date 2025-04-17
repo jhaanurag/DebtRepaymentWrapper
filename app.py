@@ -759,4 +759,5 @@ if __name__ == '__main__':
     print("Starting Flask app...")
     # Use debug=True for development ONLY. Use a production WSGI server (like gunicorn or waitress) for deployment.
     # Host='0.0.0.0' makes it accessible on the network
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

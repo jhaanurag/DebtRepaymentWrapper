@@ -953,16 +953,3 @@ def chat():
 
     # Return the AI's reply to the frontend
     return jsonify({"reply": ai_message})
-
-
-if __name__ == '__main__':
-    # Ensure the templates directory exists (though not strictly needed for render_template_string)
-    if not os.path.exists('templates'):
-        print("Creating 'templates' directory (though not used by render_template_string)")
-        os.makedirs('templates')
-
-    print("Starting Flask app...")
-    # Use debug=True for development ONLY. Use a production WSGI server (like gunicorn or waitress) for deployment.
-    # Host='0.0.0.0' makes it accessible on the network
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)

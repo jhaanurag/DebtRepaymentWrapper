@@ -1,4 +1,5 @@
-flask
+Flask
+gunicorn
 python-dotenv
 google-generativeai
-gunicorn
+numpy
